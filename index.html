@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Text Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .spinner {
+            display: none;
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold mb-6 text-center">Historical Text Analyzer</h1>
+            <a href="#" id="instructions-link" class="text-blue-500 hover:underline">Instructions</a>
+        </div>
+        <div class="mb-6">
+            <label class="block text-center mb-2 text-lg font-medium">Upload PDF(s) here</label>
+            <input type="file" id="pdf-upload" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" multiple>
+        </div>
+        <div class="flex justify-center mb-6">
+            <div id="spinner" class="spinner"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="p-4 border rounded-lg bg-gray-50">
+                <h2 class="text-lg font-semibold mb-2">OCR'd PDF Text</h2>
+                <div id="ocr-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
+                    display OCR'd PDF text here
+                </div>
+                <button id="download-ocr" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
+            </div>
+            <div class="p-4 border rounded-lg bg-gray-50">
+                <h2 class="text-lg font-semibold mb-2">Ontology Generated from PDF</h2>
+                <div id="ontology-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
+                    display ontology generated from PDF here
+                </div>
+                <button id="generate-ontology" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate Ontology</button>
+                <button id="download-ontology" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
+            </div>
+            <div class="p-4 border rounded-lg bg-gray-50">
+                <h2 class="text-lg font-semibold mb-2">Knowledge Graph from PDF</h2>
+                <div id="csv-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
+                    display CSV generated from JSON here
+                </div>
+                <button id="generate-csv" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate CSV</button>
+                <button id="download-csv" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
+    <!-- Tesseract.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1"></script>
+    <script>
+        let extractedOcrText = '';  // Global variable to hold the OCR'd text
+        let extractedOntology = '';  // Global variable to hold the generated ontology
+        let convertedCsv = '';  // Global variable to hold the converted CSV
+
+        document.getElementById('pdf-upload').addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            const ocrTextContainer = document.getElementById('ocr-text');
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';  // Show spinner
+            ocrTextContainer.innerHTML = 'Processing...';
+
+            let ocrText = '';
+
+            for (let file of files) {
+                console.log(`Processing file: ${file.name}`);
+                // Read each PDF file
+                const arrayBuffer = await file.arrayBuffer();
+                const pdfData = new Uint8Array(arrayBuffer);
+                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                const pdf = await loadingTask.promise;
+                console.log(`PDF loaded: ${file.name} (pages: ${pdf.numPages})`);
+                let fullText = '';
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const canvas = document.createElement('canvas');
+                    const canvasContext = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = {
+                        canvasContext: canvasContext,
+                        viewport: viewport
+                    };
+
+                    await page.render(renderContext).promise;
+
+                    const imageData = canvas.toDataURL('image/png');
+
+                    console.log(`Processing page ${pageNum} of file ${file.name}`);
+
+                    // Use Tesseract.js to perform OCR on the rendered page image
+                    try {
+                        const { data: { text } } = await Tesseract.recognize(
+                            imageData,
+                            'eng',
+                            {
+                                logger: m => console.log(m)
+                            }
+                        );
+                        fullText += text;
+                    } catch (error) {
+                        console.error('Tesseract OCR error:', error);
+                    }
+                }
+
+                ocrText += fullText;
+                console.log(`OCR text for file ${file.name}: ${ocrText}`);
+            }
+
+            ocrTextContainer.innerText = ocrText;
+            extractedOcrText = ocrText;  // Store the OCR text for downloading
+            spinner.style.display = 'none';  // Hide spinner
+        });
+
+        document.getElementById('download-ocr').addEventListener('click', () => {
+            if (!extractedOcrText) {
+                alert('No OCR text available for download');
+                return;
+            }
+
+            const blob = new Blob([extractedOcrText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ocr_text.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('generate-ontology').addEventListener('click', async () => {
+            if (!extractedOcrText) {
+                alert('No OCR text available to generate ontology');
+                return;
+            }
+
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';  // Ensure spinner is visible during ontology generation
+            await generateOntology(extractedOcrText);
+        });
+
+        document.getElementById('download-ontology').addEventListener('click', () => {
+            if (!extractedOntology) {
+                alert('No ontology available for download');
+                return;
+            }
+
+            const blob = new Blob([extractedOntology], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ontology.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('generate-csv').addEventListener('click', async () => {
+            if (!extractedOntology) {
+                alert('No ontology available to generate CSV');
+                return;
+            }
+
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';  // Ensure spinner is visible during CSV generation
+            await generateCsv(extractedOntology);
+        });
+
+        document.getElementById('download-csv').addEventListener('click', () => {
+            if (!convertedCsv) {
+                alert('No CSV available for download');
+                return;
+            }
+
+            const blob = new Blob([convertedCsv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ontology.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        async function generateOntology(ocrText) {
+            const ontologyTextContainer = document.getElementById('ontology-text');
+
+            const systemPrompt = "You are a knowledge representation assistant. Identify an ontology for actors, events, and organizations appropriate to the input text. Return ONLY the results as properly formatted high-quality json.";
+
+            // API endpoint for Ollama.ai
+            const url = 'http://localhost:11434/api/generate';
+
+            const requestBody = {
+                model: "mistral-nemo",
+                prompt: systemPrompt + "\n\n" + ocrText,
+                stream: false
+            };
+
+            console.log('Sending request to Ollama.ai:', requestBody);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                const ontologyResponse = data.response ? data.response : 'No response field in the returned JSON';
+                ontologyTextContainer.innerText = ontologyResponse;
+                extractedOntology = ontologyResponse;  // Save the response for download
+                console.log('Ontology generated:', ontologyResponse);
+            } catch (error) {
+                console.error('Error generating ontology:', error);
+                ontologyTextContainer.innerText = 'Error generating ontology';
+            } finally {
+                const spinner = document.getElementById('spinner');
+                spinner.style.display = 'none';  // Hide spinner after processing
+            }
+        }
+
+        async function generateCsv(ontologyJson) {
+            const csvTextContainer = document.getElementById('csv-text');
+
+            const systemPrompt = "You are a knowledge representation assistant. Use the json to represent the data in the OCR'd text as a CSV file with subject, predicate, object headings.";
+
+            // API endpoint for Ollama.ai
+            const url = 'http://localhost:11434/api/generate';
+
+            const requestBody = {
+                model: "mistral-nemo",
+                prompt: systemPrompt + "\n\n" + ontologyJson,
+                stream: false
+            };
+
+            console.log('Sending request to Ollama.ai for CSV generation:', requestBody);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                const csvResponse = data.response ? data.response : 'No response field in the returned JSON';
+                csvTextContainer.innerText = csvResponse;
+                convertedCsv = csvResponse;  // Save the CSV for download
+                console.log('CSV generated:', csvResponse);
+            } catch (error) {
+                console.error('Error generating CSV:', error);
+                csvTextContainer.innerText = 'Error generating CSV';
+            } finally {
+                const spinner = document.getElementById('spinner');
+                spinner.style.display = 'none';  // Hide spinner after processing
+            }
+        }
+    </script>
+</body>
+</html>
