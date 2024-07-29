@@ -17,4 +17,4 @@ modify the code in index.html to point to your model.
 
 profit!
 
-![make-real.png(make-real.png)
+![make-real.png](make-real.png)
