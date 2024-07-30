@@ -8,7 +8,7 @@ jobs:
     - name: Install ollama
       run: curl -fsSL https://ollama.com/install.sh | sh
     - name: trying something
-      run: export OLLAMA_SERVER_URL="http://0.0.0.0:11434"
+      run: export OLLAMA_HOST="http://0.0.0.0:11434"
     - name: Run ollama
       run: |
         ollama OLLAMA_BASE_URL
