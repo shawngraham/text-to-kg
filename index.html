@@ -216,7 +216,7 @@
             const systemPrompt = "You are a knowledge representation assistant. Identify an ontology for actors, events, and organizations appropriate to the input text. Return ONLY the results as properly formatted high-quality json.";
 
             // API endpoint for Ollama.ai
-            const url = 'https://localhost:11434/api/generate';
+            const url = 'http://0.0.0.0:11434/api/generate';
 
             const requestBody = {
                 model: "phi3:mini",
@@ -260,7 +260,7 @@
             const systemPrompt = "You are a knowledge representation assistant. Use the json to represent the data in the OCR'd text as a CSV file with subject, predicate, object headings.";
 
             // API endpoint for Ollama.ai
-            const url = 'https://localhost:11434/api/generate';
+            const url = 'http://0.0.0.0:11434/api/generate';
 
             const requestBody = {
                 model: "phi3:mini",
