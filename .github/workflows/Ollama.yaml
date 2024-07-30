@@ -7,9 +7,10 @@ jobs:
     steps:
     - name: Install ollama
       run: curl -fsSL https://ollama.com/install.sh | sh
+    - name: trying something
+      run: export OLLAMA_SERVER_URL="http://0.0.0.0:11434"
     - name: Run ollama
       run: |
-        export OLLAMA_SERVER_URL="http://0.0.0.0:11434"
         ollama OLLAMA_BASE_URL
         ollama serve &
         ollama pull phi3:mini
