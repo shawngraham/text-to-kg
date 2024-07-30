@@ -2,7 +2,7 @@ name: Ollama
 'on':
   workflow_dispatch:
 jobs:
-  summarize:
+  start-it-up:
     runs-on: ubuntu-latest
     steps:
     - name: Install ollama
@@ -11,6 +11,4 @@ jobs:
       run: |
         ollama serve phi3:mini --host 0.0.0.0 --port 11434  &
         ollama pull phi3:mini
-    - name: Call ollama API
-      run: |
-        curl -d '{"model": "phi3:mini", "stream": false, "prompt":"Whatever I say, asnwer with Yes"}' http://localhost:11434/api/generate
+    
