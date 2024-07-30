@@ -11,7 +11,6 @@ jobs:
       run: export OLLAMA_HOST="http://0.0.0.0:11434"
     - name: Run ollama
       run: |
-        ollama OLLAMA_BASE_URL
         ollama serve &
         ollama pull phi3:mini
     
