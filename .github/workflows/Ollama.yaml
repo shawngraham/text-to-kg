@@ -2,7 +2,7 @@ name: Ollama
 'on':
   workflow_dispatch:
 jobs:
-  start-it-up:
+  start-it-up2:
     runs-on: ubuntu-latest
     steps:
     - name: Install ollama
