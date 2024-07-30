@@ -9,6 +9,8 @@ jobs:
       run: curl -fsSL https://ollama.com/install.sh | sh
     - name: Run ollama
       run: |
-        ollama serve phi3:mini --host 0.0.0.0 --port 11434  &
+        export OLLAMA_SERVER_URL="http://0.0.0.0:11434"
+        ollama OLLAMA_BASE_URL
+        ollama serve &
         ollama pull phi3:mini
     
