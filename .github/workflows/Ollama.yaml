@@ -7,8 +7,6 @@ jobs:
     steps:
     - name: Install ollama
       run: curl -fsSL https://ollama.com/install.sh | sh
-    - name: trying something
-      run: export OLLAMA_HOST="http://shawngraham.github.io/text-to-kg:11434"
     - name: Run ollama
       run: |
         ollama serve &
