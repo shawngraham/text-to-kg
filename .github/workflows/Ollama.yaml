@@ -9,7 +9,7 @@ jobs:
       run: curl -fsSL https://ollama.com/install.sh | sh
     - name: Run ollama
       run: |
-        ollama serve &
+        ollama serve phi3:mini --host 0.0.0.0 --port 11434  &
         ollama pull phi3:mini
     - name: Call ollama API
       run: |
