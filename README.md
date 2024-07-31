@@ -1,7 +1,7 @@
 # text-to-kg
 just an experiment inspired by [Maggie Appleton on 'Home Cooked Software'](https://maggieappleton.com/home-cooked-software). The UI html was generated from a sketch using [MakeReal](https://makereal.tldraw.com/) which is kinda nifty.
 
-![webapp](webbapp.png)
+![webapp.png](webapp.png)
 
 ## july 30
 
