@@ -47,20 +47,20 @@
                 <button id="download-ocr" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
             </div>
             <div class="p-4 border rounded-lg bg-gray-50">
-                <h2 class="text-lg font-semibold mb-2">Ontology Generated from PDF</h2>
+                <h2 class="text-lg font-semibold mb-2">Knowledge Graph as JSON</h2>
                 <div id="ontology-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
-                    display ontology generated from PDF here
+                    Results will appear here as JSON
                 </div>
                 <button id="generate-ontology" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate Ontology</button>
                 <button id="download-ontology" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
             </div>
             <div class="p-4 border rounded-lg bg-gray-50">
                 <h2 class="text-lg font-semibold mb-2">Knowledge Graph from PDF</h2>
-                <div id="csv-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
-                    display CSV generated from JSON here
+                <div id="gexf-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
+                    GEXF generated from JSON will appear here
                 </div>
-                <button id="generate-csv" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate CSV</button>
-                <button id="download-csv" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
+                <button id="generate-gexf" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate GEXF</button>
+                <button id="download-gexf" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
             </div>
         </div>
     </div>
@@ -68,12 +68,10 @@
     <!-- PDF.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
-    <!-- Tesseract.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1"></script>
     <script>
         let extractedOcrText = '';  // Global variable to hold the OCR'd text
         let extractedOntology = '';  // Global variable to hold the generated ontology
-        let convertedCsv = '';  // Global variable to hold the converted CSV
+        let convertedGexf = '';  // Global variable to hold the converted GEXF
 
         document.getElementById('pdf-upload').addEventListener('change', async (event) => {
             const files = Array.from(event.target.files);
@@ -85,51 +83,25 @@
             let ocrText = '';
 
             for (let file of files) {
-                console.log(`Processing file: ${file.name}`);
-                // Read each PDF file
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfData = new Uint8Array(arrayBuffer);
-                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-                const pdf = await loadingTask.promise;
-                console.log(`PDF loaded: ${file.name} (pages: ${pdf.numPages})`);
-                let fullText = '';
+                const formData = new FormData();
+                formData.append('file', file);
 
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    const canvas = document.createElement('canvas');
-                    const canvasContext = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
 
-                    const renderContext = {
-                        canvasContext: canvasContext,
-                        viewport: viewport
-                    };
-
-                    await page.render(renderContext).promise;
-
-                    const imageData = canvas.toDataURL('image/png');
-
-                    console.log(`Processing page ${pageNum} of file ${file.name}`);
-
-                    // Use Tesseract.js to perform OCR on the rendered page image
-                    try {
-                        const { data: { text } } = await Tesseract.recognize(
-                            imageData,
-                            'eng',
-                            {
-                                logger: m => console.log(m)
-                            }
-                        );
-                        fullText += text;
-                    } catch (error) {
-                        console.error('Tesseract OCR error:', error);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
-                }
 
-                ocrText += fullText;
-                console.log(`OCR text for file ${file.name}: ${ocrText}`);
+                    const data = await response.json();
+                    ocrText += data.text;
+                    console.log(`OCR text for file ${file.name}: ${ocrText}`);
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                }
             }
 
             ocrTextContainer.innerText = ocrText;
@@ -182,28 +154,28 @@
             URL.revokeObjectURL(url);
         });
 
-        document.getElementById('generate-csv').addEventListener('click', async () => {
+        document.getElementById('generate-gexf').addEventListener('click', async () => {
             if (!extractedOntology) {
-                alert('No ontology available to generate CSV');
+                alert('No ontology available to generate GEXF');
                 return;
             }
 
             const spinner = document.getElementById('spinner');
-            spinner.style.display = 'block';  // Ensure spinner is visible during CSV generation
-            await generateCsv(extractedOntology);
+            spinner.style.display = 'block';  // Ensure spinner is visible during GEXF generation
+            await generateGexf(extractedOntology);
         });
 
-        document.getElementById('download-csv').addEventListener('click', () => {
-            if (!convertedCsv) {
-                alert('No CSV available for download');
+        document.getElementById('download-gexf').addEventListener('click', () => {
+            if (!convertedGexf) {
+                alert('No GEXF available for download');
                 return;
             }
 
-            const blob = new Blob([convertedCsv], { type: 'text/csv' });
+            const blob = new Blob([convertedGexf], { type: 'application/gexf+xml' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ontology.csv';
+            a.download = 'ontology.gexf';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -213,7 +185,7 @@
         async function generateOntology(ocrText) {
             const ontologyTextContainer = document.getElementById('ontology-text');
 
-            const systemPrompt = "You are a knowledge representation assistant. Identify an ontology for actors, events, and organizations appropriate to the input text. Return ONLY the results as properly formatted high-quality json.";
+            const systemPrompt = "You are a linked knowledge representation assistant. Identify an ontology for actors, events, objects and organizations appropriate to the input text. Events should connect actors, organizations, or objects. Return ONLY the results as properly formatted high-quality json.Example: Mary Turlington made a ceramic Ducky in Big Pond in 2023; she had Kenny Wong paint it. It was bought by the Grand Narrows Museum in 2023 for $123456.Result:[{'nodes': [{'label': 'the Ducky','type': 'Object','madeIn': 'Big Pond','date': '2023','potter': 'Mary Turlington','painter': 'Kenny Wong','price': '$123456'}],'edges': [{'startNode': 'the Ducky','endNode': 'Grand Narrows Museum','type': 'bought by','date': '2024'}]}]";
 
             // API endpoint for Ollama.ai
             const url = 'http://localhost:11434/api/generate';
@@ -254,10 +226,10 @@
             }
         }
 
-        async function generateCsv(ontologyJson) {
-            const csvTextContainer = document.getElementById('csv-text');
+        async function generateGexf(ontologyJson) {
+            const gexfTextContainer = document.getElementById('gexf-text');
 
-            const systemPrompt = "You are a knowledge representation assistant. Use the json to represent the data in the OCR'd text as a CSV file with subject, predicate, object headings.";
+            const systemPrompt = "Please transform the following json into HIGH QUALITY and WELL FORMED gexf for import into Gephi. Return ONLY VALID GEXF formatted xml. This is important for my career. Do not wrap the xml in back-ticks.";
 
             // API endpoint for Ollama.ai
             const url = 'http://localhost:11434/api/generate';
@@ -268,7 +240,7 @@
                 stream: false
             };
 
-            console.log('Sending request to Ollama.ai for CSV generation:', requestBody);
+            console.log('Sending request to Ollama.ai for GEXF generation:', requestBody);
 
             try {
                 const response = await fetch(url, {
@@ -285,13 +257,13 @@
 
                 const data = await response.json();
 
-                const csvResponse = data.response ? data.response : 'No response field in the returned JSON';
-                csvTextContainer.innerText = csvResponse;
-                convertedCsv = csvResponse;  // Save the CSV for download
-                console.log('CSV generated:', csvResponse);
+                const gexfResponse = data.response ? data.response : 'No response field in the returned JSON';
+                gexfTextContainer.innerText = gexfResponse;
+                convertedGexf = gexfResponse;  // Save the GEXF for download
+                console.log('GEXF generated:', gexfResponse);
             } catch (error) {
-                console.error('Error generating CSV:', error);
-                csvTextContainer.innerText = 'Error generating CSV';
+                console.error('Error generating GEXF:', error);
+                gexfTextContainer.innerText = 'Error generating GEXF';
             } finally {
                 const spinner = document.getElementById('spinner');
                 spinner.style.display = 'none';  // Hide spinner after processing
