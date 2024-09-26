@@ -3,6 +3,50 @@ just an experiment inspired by [Maggie Appleton on 'Home Cooked Software'](https
 
 ![webapp.png](webapp.png)
 
+# How to use
+
+You'll need:
+
++ [ollama](https://ollama.com/)
++ python
++ [homebrew](https://brew.sh/) (for poppler)
++ conda or miniconda to make an environment (there are other ways too)
+
+First, you need to make an environment on your computer to get all the pieces you need in one spot. 
+
+Assuming you have conda or miniconda installed:
+
+```
+$ conda create --name text-to-kg python=3.12 
+$ conda activate text-to-kg
+```
+Then install into that environment:
+
+```
+$ brew install poppler
+$ pip install flask paddlepaddle paddleocr pdf2image flask
+$ pip install -U flask-cors
+```
+
+Then, run this thing:
+```
+$ python start_app.py
+```
+
+and go to [localhost:8000](https://localhost:8000)
+
+If you want to use a different llm, use Ollama to grab whatever you want, then look in both the `app.py` and `index.html` files for all instances of `gemma:7b` and replace with your desired model.
+
+# Diary
+
+## sept 26
+
+Memo to self - conda activate coref
+
+added a start_app.py script to get the ollama, app, and web servers running.
+
+updated to use the gemma model which works better.
+
 ## july 30
 
 I've replumbed it to use paddleOCR which I've found gives really good results. However, to do this, I had to create a flask app. So, if you want to give this a whirl, there's a bit of set up you need to do.
