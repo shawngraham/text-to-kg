@@ -32,11 +32,11 @@
 <body class="bg-gray-100 text-gray-900">
     <div class="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-bold mb-6 text-center">Historical Text Analyzer</h1>
-            <a href="instructions.html" id="instructions-link" class="text-blue-500 hover:underline">Instructions</a>
+            <h1 class="text-3xl font-bold mb-6 text-center">Extract a Knowledge Graph from a PDF</h1>
+            <a href="instructions.html" id="instructions-link" class="text-blue-500 hover:underline">How To Modify</a>
         </div>
         <div class="mb-6">
-            <label class="block text-center mb-2 text-lg font-medium">Upload PDF(s) here</label>
+            <label class="block text-center mb-2 text-lg font-medium">By Shawn Graham</label>
             <input type="file" id="pdf-upload" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" multiple>
         </div>
         <div class="flex justify-center mb-6">
@@ -44,28 +44,28 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="p-4 border rounded-lg bg-gray-50">
-                <h2 class="text-lg font-semibold mb-2">OCR'd PDF Text</h2>
+                <h2 class="text-lg font-semibold mb-2">1. OCR'd PDF Text</h2>
                 <div id="ocr-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
-                    display OCR'd PDF text here
+                    Click 'Browse' above to select a PDF; OCR'd text will appear here.
                 </div>
                 <button id="download-ocr" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
             </div>
             <div class="p-4 border rounded-lg bg-gray-50">
-                <h2 class="text-lg font-semibold mb-2">Knowledge Graph as JSON</h2>
+                <h2 class="text-lg font-semibold mb-2">2. Entities & Relations</h2>
                 <div id="ontology-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
                     Results will appear here as JSON
                 </div>
-                <button id="generate-ontology" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate Ontology</button>
+                <button id="generate-ontology" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Extract Entities & Relations</button>
                 <button id="download-ontology" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
-            </div>
+            <p> After downloading you may need to open with a text editor to remove backticks before using in another application.</p></div>
             <div class="p-4 border rounded-lg bg-gray-50">
-                <h2 class="text-lg font-semibold mb-2">Knowledge Graph from PDF</h2>
+                <h2 class="text-lg font-semibold mb-2">3. Knowledge Graph</h2>
                 <div id="gexf-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
-                    gexf generated from JSON will appear here
+                    Entities and Relations as a network gexf generated from the JSON will appear here
                 </div>
                 <button id="generate-gexf" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate gexf</button>
                 <button id="download-gexf" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
-            <p> After downloading you may need to open with a text editor to remove backticks before using in another application (eg, .gexf -> gephi).</div>
+            <p> After downloading you may need to open with a text editor to remove backticks before using in another application (eg, .gexf -> gephi).</p></div>
         </div>
     </div>
 

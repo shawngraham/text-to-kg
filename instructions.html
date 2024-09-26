@@ -16,22 +16,21 @@
     <div class="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
         <h1 class="text-3xl font-bold mb-6 text-center">Instructions</h1>
         <div class="prose max-w-none">
-            <p>To use this application, please follow the steps below:</p>
+            <p>To modify this application, please follow the steps below:</p>
             <ol class="list-decimal list-inside">
-                <li>Download Ollama from <a href="https://ollama.ai" target="_blank" class="text-blue-500 hover:underline">ollama.ai</a>.</li>
-                <li>Once downloaded, run Ollama using the command line. Use the <code>ollama run</code> command with the model name you'd like to employ. For example:
+                <li>See what models are available from <a href="https://ollama.ai" target="_blank" class="text-blue-500 hover:underline">ollama.ai</a>.</li>
+                <li>At the command line use the <code>ollama run</code> command with the model name you'd like to employ. For example:
                     <pre><code>ollama run --model tinyllama</code></pre>
                 </li>
-                <li>Open the <code>index.html</code> file in a text editor and modify the relevant lines to point to the model you wish to use. Look for lines similar to:
+                <li>Open both the <code>app.py</code> and <code>index.html</code> file in a text editor and modify the relevant lines to point to the model you wish to use. Look for lines similar to:
                     <pre><code>model: "tinyllama"</code></pre>
                     and replace <code>"tinyllama"</code> with the name of the model you want to use.
                 </li>
-                <li>If you wish to modify the system prompts used for generating ontology and CSV, inspect the <code>index.html</code> file and update the prompts as needed. Look for lines similar to:
+                <li>If you wish to modify the system prompts used for generating ontology and CSV, inspect the <code>app.py</code> file and update the prompts as needed. Look for lines similar to:
                     <pre><code>const systemPrompt = "You are a knowledge representation assistant..."</code></pre>
                 </li>
             </ol>
-            <p>Once you have completed these steps, you can start using the application to upload PDFs, extract text using OCR, and generate ontology and CSV files using the Ollama model of your choice.</p>
-            <p>If you encounter any issues or have questions, please refer to the Ollama documentation or seek support from their website.</p>
+            <p>Once you have completed these steps, you can start using the application to upload PDFs, extract text using OCR, and extract entities and relationships as json, or represent them as .gexf.</p>
         </div>
         <div class="text-center mt-6">
             <a href="index.html" class="inline-block bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Back to Application</a>
