@@ -6,6 +6,10 @@
     <title>Historical Text Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+    <link rel="manifest" href="icon/site.webmanifest">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -57,11 +61,11 @@
             <div class="p-4 border rounded-lg bg-gray-50">
                 <h2 class="text-lg font-semibold mb-2">Knowledge Graph from PDF</h2>
                 <div id="gexf-text" class="h-40 bg-white border rounded-lg p-2 overflow-auto">
-                    GEXF generated from JSON will appear here
+                    gexf generated from JSON will appear here
                 </div>
-                <button id="generate-gexf" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate GEXF</button>
+                <button id="generate-gexf" class="mt-4 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Generate gexf</button>
                 <button id="download-gexf" class="mt-4 w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Download</button>
-            </div>
+            <p> After downloading you may need to open with a text editor to remove backticks before using in another application (eg, .gexf -> gephi).</div>
         </div>
     </div>
 
@@ -71,7 +75,7 @@
     <script>
         let extractedOcrText = '';  // Global variable to hold the OCR'd text
         let extractedOntology = '';  // Global variable to hold the generated ontology
-        let convertedGexf = '';  // Global variable to hold the converted GEXF
+        let convertedgexf = '';  // Global variable to hold the converted gexf
 
         document.getElementById('pdf-upload').addEventListener('change', async (event) => {
             const files = Array.from(event.target.files);
@@ -156,22 +160,22 @@
 
         document.getElementById('generate-gexf').addEventListener('click', async () => {
             if (!extractedOntology) {
-                alert('No ontology available to generate GEXF');
+                alert('No ontology available to generate gexf');
                 return;
             }
 
             const spinner = document.getElementById('spinner');
-            spinner.style.display = 'block';  // Ensure spinner is visible during GEXF generation
-            await generateGexf(extractedOntology);
+            spinner.style.display = 'block';  // Ensure spinner is visible during gexf generation
+            await generategexf(extractedOntology);
         });
 
         document.getElementById('download-gexf').addEventListener('click', () => {
-            if (!convertedGexf) {
-                alert('No GEXF available for download');
+            if (!convertedgexf) {
+                alert('No gexf available for download');
                 return;
             }
 
-            const blob = new Blob([convertedGexf], { type: 'application/gexf+xml' });
+            const blob = new Blob([convertedgexf], { type: 'application/gexf+xml' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -183,92 +187,70 @@
         });
 
         async function generateOntology(ocrText) {
-            const ontologyTextContainer = document.getElementById('ontology-text');
+    const ontologyTextContainer = document.getElementById('ontology-text');
+    const spinner = document.getElementById('spinner');
 
-            const systemPrompt = "You are a linked knowledge representation assistant. Identify an ontology for actors, events, objects and organizations appropriate to the input text. Events should connect actors, organizations, or objects. Return ONLY the results as properly formatted high-quality json.Example: Mary Turlington made a ceramic Ducky in Big Pond in 2023; she had Kenny Wong paint it. It was bought by the Grand Narrows Museum in 2023 for $123456.Result:[{'nodes': [{'label': 'the Ducky','type': 'Object','madeIn': 'Big Pond','date': '2023','potter': 'Mary Turlington','painter': 'Kenny Wong','price': '$123456'}],'edges': [{'startNode': 'the Ducky','endNode': 'Grand Narrows Museum','type': 'bought by','date': '2024'}]}]";
+    const requestBody = {
+        ocrText: ocrText
+    };
 
-            // API endpoint for Ollama.ai
-            const url = 'http://localhost:11434/api/generate';
+    try {
+        const response = await fetch('http://127.0.0.1:5000/generate_ontology', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
 
-            const requestBody = {
-                model: "phi3:mini",
-                prompt: systemPrompt + "\n\n" + ocrText,
-                stream: false
-            };
-
-            console.log('Sending request to Ollama.ai:', requestBody);
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-
-                const ontologyResponse = data.response ? data.response : 'No response field in the returned JSON';
-                ontologyTextContainer.innerText = ontologyResponse;
-                extractedOntology = ontologyResponse;  // Save the response for download
-                console.log('Ontology generated:', ontologyResponse);
-            } catch (error) {
-                console.error('Error generating ontology:', error);
-                ontologyTextContainer.innerText = 'Error generating ontology';
-            } finally {
-                const spinner = document.getElementById('spinner');
-                spinner.style.display = 'none';  // Hide spinner after processing
-            }
+        if (!response.ok) {
+            throw new Error('Failed to generate ontology');
         }
 
-        async function generateGexf(ontologyJson) {
-            const gexfTextContainer = document.getElementById('gexf-text');
+        const data = await response.json();
+        const ontologyResponse = data.ontology ? data.ontology : 'No ontology generated';
+        ontologyTextContainer.innerText = ontologyResponse;
+        extractedOntology = ontologyResponse;
+    } catch (error) {
+        console.error('Error generating ontology:', error);
+        ontologyTextContainer.innerText = 'Error generating ontology';
+    } finally {
+        spinner.style.display = 'none';
+    }
+}
 
-            const systemPrompt = "Please transform the following json into HIGH QUALITY and WELL FORMED gexf for import into Gephi. Return ONLY VALID GEXF formatted xml. This is important for my career. Do not wrap the xml in back-ticks.";
+async function generategexf(ontologyJson) {
+    const gexfTextContainer = document.getElementById('gexf-text');
+    const spinner = document.getElementById('spinner');
 
-            // API endpoint for Ollama.ai
-            const url = 'http://localhost:11434/api/generate';
+    const requestBody = {
+        ontologyJson: ontologyJson
+    };
 
-            const requestBody = {
-                model: "phi3:mini",
-                prompt: systemPrompt + "\n\n" + ontologyJson,
-                stream: false
-            };
+    try {
+        const response = await fetch('http://127.0.0.1:5000/generate_gexf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
 
-            console.log('Sending request to Ollama.ai for GEXF generation:', requestBody);
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-
-                const gexfResponse = data.response ? data.response : 'No response field in the returned JSON';
-                gexfTextContainer.innerText = gexfResponse;
-                convertedGexf = gexfResponse;  // Save the GEXF for download
-                console.log('GEXF generated:', gexfResponse);
-            } catch (error) {
-                console.error('Error generating GEXF:', error);
-                gexfTextContainer.innerText = 'Error generating GEXF';
-            } finally {
-                const spinner = document.getElementById('spinner');
-                spinner.style.display = 'none';  // Hide spinner after processing
-            }
+        if (!response.ok) {
+            throw new Error('Failed to generate gexf');
         }
+
+        const data = await response.json();
+        const gexfResponse = data.gexf ? data.gexf : 'No gexf generated';
+        gexfTextContainer.innerText = gexfResponse;
+        convertedgexf = gexfResponse;
+    } catch (error) {
+        console.error('Error generating gexf:', error);
+        gexfTextContainer.innerText = 'Error generating gexf';
+    } finally {
+        spinner.style.display = 'none';
+    }
+}
     </script>
 </body>
 </html>
