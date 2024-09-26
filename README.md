@@ -24,7 +24,7 @@ Then install into that environment:
 
 ```
 $ brew install poppler
-$ pip install flask paddlepaddle paddleocr pdf2image flask
+$ pip install flask paddlepaddle paddleocr pdf2image 
 $ pip install -U flask-cors
 ```
 
