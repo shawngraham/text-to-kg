@@ -28,6 +28,13 @@ $ pip install flask paddlepaddle paddleocr pdf2image
 $ pip install -U flask-cors
 ```
 
+Install Ollama. Start up the Ollama server; you'll need to pull an appropriate model first. Try `gemma:7b`. At the command prompt:
+
+```
+$ Ollama pull gemma:7b
+```
+Ollama will download the model if this is the first time. Eventually you'll get the `>>>` prompt to chat with the model. We don't need that, so exit with ```/exit```. Note that the Ollama icon will be in your status bars (top right, mac; bottom right, windows) showing that the Ollama server is running.
+
 Then, run this thing:
 ```
 $ python start_app.py
